@@ -1,0 +1,6 @@
+# -*- org-confirm-babel-evaluate: nil; -*-
+#+STARTUP: overview
+#+title: Tester
+#+date: <2020-05-27 Wed>
+#+author: DEADB17
+#+email: deadb17@gmail.com

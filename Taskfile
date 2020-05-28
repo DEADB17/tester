@@ -1,0 +1,60 @@
+#!/usr/bin/env fish
+
+function install -d "Install asdf and npm"
+    asdf install
+    npm install
+end
+
+function update -d "Update asdf and npm"
+    echo "Updating asdf"
+    asdf update
+    asdf plugin update --all
+    echo "Updating NPM"
+    npm outdated
+    npm update
+end
+
+function format -d "Format with prettier"
+    if test -n "$argv"
+        npx prettier $argv
+    else
+        npx prettier --ignore-path .gitignore --write .
+    end
+end
+
+function lint -d "Lint using typescript (tsc)"
+    tsc $argv
+end
+
+function tester -d "Run tests: specific file or test/*.js"
+    set --local files test/*.js
+    if test -n "$argv"
+        set files $argv
+    end
+    for f in $files; node $f; end
+end
+
+# Available tasks
+set tasks tester format lint install update
+
+################################################################################
+# Taskfile functions
+
+function help -d "Usage"
+    echo "run <task> [ args ]"
+    echo "Available tasks:"
+    for t in $tasks; desc $t; end
+end
+
+function desc -d "Print a function's description"
+    printf '%s\t- %s\n' $argv (functions $argv | \
+    grep 'function '$argv'.*--description' | sed -E "s|.*'(.*)'.*|\1|")
+end
+
+################################################################################
+# Taskfile entry point
+
+set --local task $argv[1]
+if set --query task; and functions --query $task
+    time $task $argv[2..-1]
+else; help; end
