@@ -163,3 +163,32 @@ import { strict as assert } from "assert";
   };
   run(callback, [{ kids: [{ kids: [{ fn }] }] }]);
 }
+
+{
+  const callback = (ob) => {
+    if (ob == null) return;
+    assert.equal(ob.status, pending);
+    switch (ob.item) {
+      case 7:
+        assert.deepEqual(ob.parents, [
+          { kids: [{ kids: [5, 6] }, { kids: [7, 8] }] },
+          { kids: [7, 8] },
+        ]);
+        break;
+      case 2:
+        console.dir(ob.parents);
+        assert.deepEqual(ob.parents, [
+          { kids: [{ kids: [1, 2] }, { kids: [3, 4] }] },
+          { kids: [1, 2] },
+        ]);
+        break;
+      default:
+        assert.ok(true);
+    }
+  };
+  const tests = [
+    { kids: [{ kids: [1, 2] }, { kids: [3, 4] }] },
+    { kids: [{ kids: [5, 6] }, { kids: [7, 8] }] },
+  ];
+  run(callback, tests);
+}

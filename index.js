@@ -93,6 +93,7 @@ export function run(callback, tests) {
 
   const upd = (status, item) => {
     callback({ item, parents, status, time: Date.now() });
+    // FIXME(db17): Never gets called
     if (item === parents[parents.length - 1]) parents.pop();
   };
 
