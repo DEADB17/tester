@@ -1,5 +1,89 @@
-import { run, pending, start, ok } from "./index.js";
+import { test, run, pending, start, ok } from "./index.js";
 import { strict as assert } from "assert";
+
+////////////////////////////////////////////////////////////////////////////////
+// UI
+
+{
+  const suite = test,
+    describe = test,
+    it = test;
+  const fn = () => {};
+  const promise = async () => {};
+  const cb = (_done) => {};
+  const actual = suite("Root", [
+    describe("sync and promise", [it("syncs", fn), test("promise", promise)]),
+    describe("callback and pending", [it("calls back", cb), it("is pending")]),
+    describe("has skip and only", [
+      it.skip("skips", fn),
+      it.only("is only", fn),
+      it("is regular", fn),
+    ]),
+    describe.skip("skip group", [
+      it.skip("skips", fn),
+      it.only("is only", fn),
+      it("is regular", fn),
+    ]),
+    describe.only("only group", [
+      it.skip("skips", fn),
+      it.only("is only", fn),
+      it("is regular", fn),
+    ]),
+  ]);
+  const expected = {
+    info: "Root",
+    kids: [
+      {
+        info: "sync and promise",
+        kids: [
+          { info: "syncs", fn, flag: ["none"] },
+          { info: "promise", fn: promise, flag: ["none"] },
+        ],
+        flag: ["none"],
+      },
+      {
+        info: "callback and pending",
+        kids: [
+          { info: "calls back", cb, flag: ["none"] },
+          { info: "is pending" },
+        ],
+        flag: ["none"],
+      },
+      {
+        info: "has skip and only",
+        kids: [
+          { info: "skips", fn, flag: ["skip"] },
+          { info: "is only", fn, flag: ["only"] },
+          { info: "is regular", fn, flag: ["none"] },
+        ],
+        flag: ["none"],
+      },
+      {
+        info: "skip group",
+        kids: [
+          { info: "skips", fn, flag: ["skip"] },
+          { info: "is only", fn, flag: ["only"] },
+          { info: "is regular", fn, flag: ["none"] },
+        ],
+        flag: ["skip"],
+      },
+      {
+        info: "only group",
+        kids: [
+          { info: "skips", fn, flag: ["skip"] },
+          { info: "is only", fn, flag: ["only"] },
+          { info: "is regular", fn, flag: ["none"] },
+        ],
+        flag: ["only"],
+      },
+    ],
+    flag: ["none"],
+  };
+  assert.deepEqual(actual, expected);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// run
 
 {
   const callback = () => {};

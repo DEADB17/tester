@@ -55,26 +55,26 @@ class Suite {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-const tests = [
-  { name: "", flag: "", kids: [] },
-  { name: "", flag: "", fn: null },
-  { name: "", flag: "", cb: null },
-];
+const none = ["none"];
+const skip = ["skip"];
+const only = ["only"];
 
-export const skip = {};
-export const only = {};
-
-function group(skip, name, kids) {
-  return {};
+function makeTest(info, val, flag) {
+  if (Array.isArray(val)) {
+    return { info, kids: val, flag };
+  }
+  if (typeof val === "function") {
+    if (val.length < 1) return { info, fn: val, flag };
+    return { info, cb: val, flag };
+  }
+  return { info };
 }
 
-function test(skip, name, fn) {
-  return {};
-}
+export const test = (info, val) => makeTest(info, val, none);
+test.skip = (info, val) => makeTest(info, val, skip);
+test.only = (info, val) => makeTest(info, val, only);
 
-function call(skip, name, cb) {
-  return {};
-}
+////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
 
