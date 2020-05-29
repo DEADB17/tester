@@ -106,10 +106,10 @@ import { strict as assert } from "assert";
   const fn = () => assert.ok(true);
   const callback = (ob) => {
     if (ob == null) return;
-    assert.deepEqual(ob.item, { kids: [{ kids: [{ fn }] }] });
+    assert.deepEqual(ob.item, { fn });
     assert.equal(ob.status, ok);
   };
-  run(callback, { kids: [{ kids: [{ fn }] }] });
+  run(callback, [{ kids: [{ kids: [{ fn }] }] }]);
 }
 
 {
