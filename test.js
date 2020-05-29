@@ -1,17 +1,16 @@
-import { Suite } from "./index.js";
+import { run } from "./index.js";
 import { strict as assert } from "assert";
 
-new Suite("Ha ha")
-  .test("Passing", () => {
-    assert.ok(true);
-  })
-  .test("Pending")
-  .test("Not passing", () => {
-    assert.ok(false);
-  })
-  .skip("Skipped", () => {
-    assert.ok(false);
-  })
-  .run();
-
-Suite.exit();
+{
+  const expected = {
+    failure: [],
+    pending: [],
+    success: [],
+  };
+  assert.deepEqual(run(), expected);
+  assert.deepEqual(run(null), expected);
+  assert.deepEqual(run(123), expected);
+  assert.deepEqual(run("hello"), expected);
+  assert.deepEqual(run({}), expected);
+  assert.deepEqual(run([]), expected);
+}
