@@ -38,7 +38,6 @@ import { strict as assert } from "assert";
   const callback = (ob) => {
     if (ob == null) return;
     assert.deepEqual(ob.item, { fn });
-    assert.ok(ob.time);
     if (ob.status === start) assert.ok(true);
     else if (ob.status === ok) assert.ok(true);
     else assert.ok(false);
@@ -51,7 +50,6 @@ import { strict as assert } from "assert";
   const callback = (ob) => {
     if (ob == null) return;
     assert.deepEqual(ob.item, { fn });
-    assert.ok(ob.time);
     if (ob.status === start) assert.ok(true);
     else if (ob.status instanceof Error) assert.ok(true);
     else assert.ok(false);
@@ -64,7 +62,6 @@ import { strict as assert } from "assert";
   const callback = (ob) => {
     if (ob == null) return;
     assert.deepEqual(ob.item, { fn });
-    assert.ok(ob.time);
     if (ob.status === start) assert.ok(true);
     else if (ob.status === ok) assert.ok(true);
     else assert.ok(false);
@@ -77,7 +74,6 @@ import { strict as assert } from "assert";
   const callback = (ob) => {
     if (ob == null) return;
     assert.deepEqual(ob.item, { cb });
-    assert.ok(ob.time);
     if (ob.status === start) assert.ok(true);
     else if (ob.status === ok) assert.ok(true);
     else assert.ok(false);
@@ -90,7 +86,6 @@ import { strict as assert } from "assert";
   const callback = (ob) => {
     if (ob == null) return;
     assert.deepEqual(ob.item, { cb });
-    assert.ok(ob.time);
     if (ob.status === start) assert.ok(true);
     else if (ob.status instanceof Error) assert.ok(true);
     else assert.ok(false);
@@ -103,7 +98,6 @@ import { strict as assert } from "assert";
     if (ob == null) return;
     assert.deepEqual(ob.item, { kids: [] });
     assert.equal(ob.status, pending);
-    assert.ok(ob.time);
   };
   run(callback, [{ kids: [] }]);
 }
@@ -114,7 +108,6 @@ import { strict as assert } from "assert";
     if (ob == null) return;
     assert.deepEqual(ob.item, { kids: [{ kids: [{ fn }] }] });
     assert.equal(ob.status, ok);
-    assert.ok(ob.time);
   };
   run(callback, { kids: [{ kids: [{ fn }] }] });
 }
@@ -124,7 +117,6 @@ import { strict as assert } from "assert";
     if (ob == null) return;
     assert.equal(ob.item, 1);
     assert.equal(ob.status, pending);
-    assert.ok(ob.time);
   };
   run(callback, [1]);
 }
