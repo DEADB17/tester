@@ -139,3 +139,27 @@ import { strict as assert } from "assert";
   };
   run(callback, [1]);
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// Parents
+
+{
+  const fn = () => assert.ok(true);
+  const callback = (ob) => {
+    if (ob == null) return;
+    assert.deepEqual(ob.parents, []);
+  };
+  run(callback, [{ fn }]);
+}
+
+{
+  const fn = () => assert.ok(true);
+  const callback = (ob) => {
+    if (ob == null) return;
+    assert.deepEqual(ob.parents, [
+      { kids: [{ kids: [{ fn }] }] },
+      { kids: [{ fn }] },
+    ]);
+  };
+  run(callback, [{ kids: [{ kids: [{ fn }] }] }]);
+}

@@ -89,7 +89,14 @@ export const ok = ["ok"];
 export function run(callback, tests) {
   if (!Array.isArray(tests) || tests.length < 1) return callback();
 
-  const upd = (status, item) => callback({ item, status, time: Date.now() });
+  const parents = [];
+
+  const upd = (status, item) => {
+    callback({ item, parents, status, time: Date.now() });
+    if (status !== start && item === parents[parents.length - 1]) {
+      parents.pop();
+    }
+  };
 
   const stack = [...tests];
 
@@ -97,6 +104,7 @@ export function run(callback, tests) {
     const item = stack.pop();
     if (!isObject(item)) upd(pending, item);
     else if ("kids" in item) {
+      parents.push(item);
       if (item.kids.length) stack.push(...item.kids);
       else upd(pending, item);
     } else if ("fn" in item) {
