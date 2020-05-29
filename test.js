@@ -113,6 +113,25 @@ import { strict as assert } from "assert";
 }
 
 {
+  const fn = () => assert.ok(true);
+  let count = 0;
+  const callback = (ob) => {
+    if (ob == null) {
+      assert.equal(count, 8);
+      return;
+    }
+    ++count;
+    assert.deepEqual(ob.item, { fn });
+    assert.equal(ob.status, ok);
+  };
+  const tests = [
+    { kids: [{ kids: [{ fn }, { fn }] }, { kids: [{ fn }, { fn }] }] },
+    { kids: [{ kids: [{ fn }, { fn }] }, { kids: [{ fn }, { fn }] }] },
+  ];
+  run(callback, tests);
+}
+
+{
   const callback = (ob) => {
     if (ob == null) return;
     assert.equal(ob.item, 1);
