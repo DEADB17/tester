@@ -57,8 +57,8 @@ class Suite {
 
 const tests = [
   { name: "", flag: "", kids: [] },
-  { name: "", flag: "", sync: null },
-  { name: "", flag: "", async: null },
+  { name: "", flag: "", fn: null },
+  { name: "", flag: "", cb: null },
 ];
 
 export const skip = {};
@@ -72,66 +72,52 @@ function test(skip, name, fn) {
   return {};
 }
 
-function call(skip, name, fn) {
+function call(skip, name, cb) {
   return {};
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-const ok = ["ok"];
+function isObject(item) {
+  return typeof item === "object" && item != null;
+}
 
-export function run(tests) {
-  const success = [];
-  const failure = [];
-  const pending = [];
-  const result = { success, failure, pending };
+export const pending = ["pending"];
+export const start = ["start"];
+export const ok = ["ok"];
 
-  if (!Array.isArray(tests) || tests.length < 1) return result;
+export function run(callback, tests) {
+  if (!Array.isArray(tests) || tests.length < 1) return callback();
+
+  const upd = (status, item) => callback({ item, status, time: Date.now() });
 
   const stack = [...tests];
-  const waiting = [];
-  const done = (status, item, id, begin) => {
-    if (id) waiting[id] = null;
-    (status === ok ? success : failure).push({
-      item,
-      status,
-      begin,
-      end: Date.now(),
-    });
-  };
 
   while (stack.length) {
     const item = stack.pop();
-    if ("kids" in item) {
+    if (!isObject(item)) upd(pending, item);
+    else if ("kids" in item) {
       if (item.kids.length) stack.push(...item.kids);
-      else pending.push(item);
-    } else if ("sync" in item) {
-      if (typeof item.sync === "function") {
-        if ("then" in item.sync) {
-          waiting.push(item);
-          const begin = Date.now();
-          const id = waiting.length - 1;
-          item.sync
-            .then(() => done(ok, item, id, begin))
-            .catch((error) => done(error, item, id, begin));
-        } else {
-          const begin = Date.now();
-          try {
-            item.sync();
-            done(ok, item, null, begin);
-          } catch (error) {
-            done(error, item, null, begin);
-          }
+      else upd(pending, item);
+    } else if ("fn" in item) {
+      if (typeof item.fn === "function") {
+        try {
+          const res = item.fn();
+          if (isObject(res) && "then" in res) {
+            upd(start, item);
+            res.then(() => upd(ok, item)).catch((error) => upd(error, item));
+          } else upd(ok, item);
+        } catch (error) {
+          upd(error, item);
         }
-      } else pending.push(item);
-    } else if ("async" in item) {
-      if (typeof item.async === "function") {
-        waiting.push(item);
-        const id = waiting.length - 1;
-        const callback = (error) => done(error || ok, item, id, begin);
-        item.async(callback);
-      } else pending.push(item);
-    } else pending.push(item);
+      } else upd(pending, item);
+    } else if ("cb" in item) {
+      if (typeof item.cb === "function") {
+        upd(start, item);
+        const done = (error) => upd(error || ok, item);
+        item.cb(done);
+      } else upd(pending, item);
+    } else upd(pending, item);
   }
-  return result;
+  return callback();
 }
