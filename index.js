@@ -93,9 +93,7 @@ export function run(callback, tests) {
 
   const upd = (status, item) => {
     callback({ item, parents, status, time: Date.now() });
-    if (status !== start && item === parents[parents.length - 1]) {
-      parents.pop();
-    }
+    if (item === parents[parents.length - 1]) parents.pop();
   };
 
   const stack = [...tests];
