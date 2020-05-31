@@ -1,130 +1,136 @@
-const exit =
-  (process && typeof process.exit === "function" && process.exit) ||
-  ((code) => code);
+const fnKind = "sync",
+  cbKind = "callback";
 
-class Suite {
-  static status = 0;
-  static exit() {
-    exit(Suite.status);
+const noneFlag = "none",
+  onlyFlag = "only",
+  skipFlag = "skip";
+
+/**
+ * @arg {string} info
+ * @arg {Tester.Fn | Tester.Cb} [fn]
+ * @arg {Tester.TestFlags} flag
+ * @return {Tester.AnyTest}
+ */
+function createTest(info, fn, flag) {
+  if (typeof fn === "function") {
+    if (fn.length < 1) return { info, kind: fnKind, flag, fn };
+    else return { info, kind: cbKind, flag, fn };
+  } else {
+    return { info, kind: "undefined", flag: "pending" };
+  }
+}
+
+/**
+ * @arg {string} info
+ * @arg {Tester.Fn | Tester.Cb} [val]
+ */
+export const test = (info, val) => createTest(info, val, noneFlag);
+/**
+ * @arg {string} info
+ * @arg {Tester.Fn | Tester.Cb} val
+ */
+test.skip = (info, val) => createTest(info, val, skipFlag);
+/**
+ * @arg {string} info
+ * @arg {Tester.Fn | Tester.Cb} val
+ */
+test.only = (info, val) => createTest(info, val, onlyFlag);
+
+const started = "started";
+const passed = "passed";
+
+/**
+ * @arg {number} id
+ * @arg {Tester.Status} status
+ * @arg {Tester.Test} test
+ */
+const toOut = (id, status, test) =>
+  /** @type {Tester.Out } */ ({ ...test, id, status, time: new Date() });
+
+/**
+ * @arg {Tester.Send} send
+ * @arg {Array<Tester.AnyTest>} tests
+ */
+export function run(send, ...tests) {
+  /** @type {Array<Tester.AnyTest>} */
+  const none = [];
+  /** @type {Array<Tester.AnyTest>} */
+  const only = [];
+  /** @type {Array<Tester.AnyTest>} */
+  const skip = [];
+  /** @type {Array<Tester.AnyTest>} */
+  const pending = [];
+
+  for (const test of tests) {
+    if (test.flag === noneFlag) none.push(test);
+    else if (test.flag === onlyFlag) only.push(test);
+    else if (test.flag === skipFlag) skip.push(test);
+    else pending.push(test);
   }
 
-  constructor(name) {
-    this.name = name;
-    this.pack = [];
-    this.singles = [];
-    this.pending = [];
-    this.skipped = [];
-  }
+  const toRun = /** @type {Array<Tester.Test>} */ (only.length ? only : none);
+  let left = toRun.length;
 
-  test(name, fn) {
-    if (fn == null) this.pending.push(name);
-    else this.pack.push({ name, fn });
-    return this;
-  }
-
-  only(name, fn) {
-    this.singles.push({ name, fn });
-    return this;
-  }
-
-  skip(name, _fn) {
-    this.skipped.push(name);
-    return this;
-  }
-
-  run() {
-    let errors = 0;
-    const tests = this.singles.length ? this.singles : this.pack;
-    console.info("#", this.name);
-    for (const test of tests) {
-      try {
-        test.fn();
-        console.log("   ok:", test.name);
-      } catch (e) {
-        console.error("error:", test.name, "\n", e);
-        errors++;
-        Suite.status = 1;
-      }
+  /** @arg {Tester.Out} out */
+  const upd = (out) => {
+    if (out.status !== started) --left;
+    send(out);
+    if (left === 0) {
+      /** @type {Tester.MsgOut} */
+      const out = {
+        id: -1,
+        info: "End",
+        kind: "message",
+        status: "end",
+        flag: "none",
+        body: [],
+        time: new Date(),
+      };
+      send(out);
     }
-    console.info(errors, "errors in", tests.length, "tests");
-    if (this.skipped.length) console.info(this.skipped.length, "skipped");
-    if (this.pending.length) console.info(this.pending.length, "pending");
-    return errors === 0;
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
-const none = ["none"];
-const skip = ["skip"];
-const only = ["only"];
-
-function makeTest(info, val, flag) {
-  if (Array.isArray(val)) {
-    return { info, kids: val, flag };
-  }
-  if (typeof val === "function") {
-    if (val.length < 1) return { info, fn: val, flag };
-    return { info, cb: val, flag };
-  }
-  return { info };
-}
-
-export const test = (info, val) => makeTest(info, val, none);
-test.skip = (info, val) => makeTest(info, val, skip);
-test.only = (info, val) => makeTest(info, val, only);
-
-////////////////////////////////////////////////////////////////////////////////
-
-////////////////////////////////////////////////////////////////////////////////
-
-function isObject(item) {
-  return typeof item === "object" && item != null;
-}
-
-export const pending = ["pending"];
-export const start = ["start"];
-export const ok = ["ok"];
-
-export function run(callback, tests) {
-  if (!Array.isArray(tests) || tests.length < 1) return callback();
-
-  const parents = [];
-
-  const upd = (status, item) => {
-    callback({ item, parents, status, time: Date.now() });
-    // FIXME(db17): Never gets called
-    if (item === parents[parents.length - 1]) parents.pop();
   };
 
-  const stack = [...tests];
+  /** @type {Tester.MsgOut} */
+  const out = {
+    id: -1,
+    info: "Begin",
+    kind: "message",
+    status: "begin",
+    flag: "none",
+    body: [],
+    time: new Date(),
+  };
+  send(out);
 
-  while (stack.length) {
-    const item = stack.pop();
-    if (!isObject(item)) upd(pending, item);
-    else if ("kids" in item) {
-      parents.push(item);
-      if (item.kids.length) stack.push(...item.kids);
-      else upd(pending, item);
-    } else if ("fn" in item) {
-      if (typeof item.fn === "function") {
-        try {
-          const res = item.fn();
-          if (isObject(res) && "then" in res) {
-            upd(start, item);
-            res.then(() => upd(ok, item)).catch((error) => upd(error, item));
-          } else upd(ok, item);
-        } catch (error) {
-          upd(error, item);
+  for (const [id, test] of toRun.entries()) {
+    if (test.kind === fnKind) {
+      upd(toOut(id, started, test));
+      try {
+        const res = test.fn();
+        if (res instanceof Promise) {
+          test.kind = "promise";
+          res
+            .then(() => upd(toOut(id, passed, test)))
+            .catch((/** @type {Error} */ error) => upd(toOut(id, error, test)));
+        } else {
+          upd(toOut(id, passed, test));
         }
-      } else upd(pending, item);
-    } else if ("cb" in item) {
-      if (typeof item.cb === "function") {
-        upd(start, item);
-        const done = (error) => upd(error || ok, item);
-        item.cb(done);
-      } else upd(pending, item);
-    } else upd(pending, item);
+      } catch (error) {
+        upd(toOut(id, error, test));
+      }
+    } else if (test.kind === cbKind) {
+      upd(toOut(id, started, test));
+      /** @arg {Error | void} error */
+      const done = (error) => {
+        if (error && !(error instanceof Error)) error = new Error(error);
+        upd(toOut(id, error || passed, test));
+      };
+      test.fn(done);
+    }
   }
-  return callback();
 }
+
+/**
+ * @arg {Array<any>} _args
+ */
+run.skip = (..._args) => {};
