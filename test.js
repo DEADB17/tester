@@ -2,13 +2,16 @@ import { run, test } from "./index.js";
 import { strict as assert } from "assert";
 
 run(
-  /** @arg {Tester.Out} m */
-  (m) => {
-    if (m.status === "passed") {
-      console.info("\x1b[32m", m.status, "\x1b[0m", m.info);
-    } else if (m.status instanceof Error) {
-      console.log("\x1b[31m", m.info, "\x1b[0m");
-      console.error(m.status);
+  /** @arg {Tester.Msg} m */
+  ({ test, collection, count }) => {
+    const { status, info } = test;
+    const total = collection.run.length;
+    const step = `(${count}/${total})`;
+    if (status === "passed") {
+      console.info("\x1b[32m", status, "\x1b[0m", step, info);
+    } else if (status instanceof Error) {
+      console.log("\x1b[31m", " error ", step, info, "\x1b[0m");
+      console.error(status);
     }
   },
 

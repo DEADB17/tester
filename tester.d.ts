@@ -1,59 +1,58 @@
 declare namespace Tester {
   type FnKind = "sync" | "promise";
   type CbKind = "callback";
-  type TestKinds = "undefined" | FnKind | CbKind;
+  type TestKinds = FnKind | CbKind;
 
-  type RunFlags = "none" | "only" | "skip";
-  type TestFlags = RunFlags | "pending";
+  type Flags = "rest" | "only" | "skip";
 
-  type AnyTest = {
+  interface BaseTest {
     info: string;
-    kind: TestKinds;
-    flag: TestFlags;
-    fn?: Fn | Cb;
-  };
+    kind: string;
+    flag: Flags;
+  }
 
-  type Fn = () => void | Promise<void>;
+  interface PendingTest extends BaseTest {
+    kind: "pending";
+  }
 
-  type FnTest = AnyTest & {
+  type FnVal = () => void | Promise<void>;
+
+  interface FnTest extends BaseTest {
     kind: FnKind;
-    flag: RunFlags;
-    fn: Fn;
-  };
+    fn: FnVal;
+  }
 
-  type Cb = (done: (error: Error | void) => void) => void;
+  type CbVal = (done: (error: Error | void) => void) => void;
 
-  type CbTest = AnyTest & {
+  interface CbTest extends BaseTest {
     kind: CbKind;
-    flag: RunFlags;
-    fn: Cb;
-  };
+    fn: CbVal;
+  }
 
-  type Test = FnTest | CbTest;
+  type RunnableTest = FnTest | CbTest;
+  type PreTest = RunnableTest | PendingTest;
 
-  type Status = Error | "started" | "passed";
+  type Status = "started" | "passed" | Error;
 
-  type AnyOut = Test & {
+  type PostTest = RunnableTest & {
     id: number;
     status: Status;
     time: Date;
   };
 
-  type FnOut = AnyOut & FnTest;
+  interface Collection {
+    skip: Array<RunnableTest>;
+    only: Array<RunnableTest>;
+    rest: Array<RunnableTest>;
+    run: Array<RunnableTest>;
+    pending: Array<PreTest>;
+  }
 
-  type CbOut = AnyOut & CbTest;
-
-  type MsgOut = {
-    id: number;
-    info: string;
-    kind: "message";
-    status: "begin" | "end";
-    flag: "none";
-    body: any;
-    time: Date;
+  type Msg = {
+    test: PostTest;
+    collection: Collection;
+    count: number;
   };
 
-  type Out = FnOut | CbOut | MsgOut;
-
-  type Send = (test: Out) => void;
+  type Send = (message: Msg) => void;
 }
