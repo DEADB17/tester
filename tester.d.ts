@@ -41,18 +41,20 @@ declare namespace Tester {
   };
 
   interface Collection {
-    skip: Array<RunnableTest>;
-    only: Array<RunnableTest>;
-    rest: Array<RunnableTest>;
-    run: Array<RunnableTest>;
     pending: Array<PreTest>;
+    skip: Array<RunnableTest>;
+    run: Array<RunnableTest>;
   }
 
   type Msg = {
     test: PostTest;
     collection: Collection;
     count: number;
+    total: number;
+    passed: number;
+    failed: number;
   };
 
-  type Send = (message: Msg) => void;
+  type Update = (message: Msg) => void;
+  type Done = (exitCode: number) => void;
 }

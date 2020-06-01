@@ -1,42 +1,37 @@
-import { run, test } from "./index.js";
+import { run, test, terminal } from "./index.js";
 import { strict as assert } from "assert";
 
 run(
-  /** @arg {Tester.Msg} m */
-  ({ test, collection, count }) => {
-    const { status, info } = test;
-    const total = collection.run.length;
-    const step = `(${count}/${total})`;
-    if (status === "passed") {
-      console.info("\x1b[32m", status, "\x1b[0m", step, info);
-    } else if (status instanceof Error) {
-      console.log("\x1b[31m", " error ", step, info, "\x1b[0m");
-      console.error(status);
-    }
-  },
+  (code) => console.log("Exit", code),
+  terminal,
 
-  test("0 Sync pass", () => {
-    assert.ok(1);
-  }),
+  test("00 Sync pass", () => assert.ok(1)),
 
-  test("1 callback pass", (done) => {
+  test("01 callback pass", (done) => {
     assert.ok(1);
     setTimeout(done, 500);
   }),
 
   test("pending"),
 
-  test("2 promise pass", async () => {
-    await new Promise(function (resolve) {
-      setTimeout(resolve, 500);
-    });
+  test("02 promise pass", async () => {
+    await new Promise((resolve) => setTimeout(resolve, 100));
   }),
 
-  test("3 sync fail", () => {
-    assert.ok(0);
-  }),
+  test("03 sync fail", () => assert.ok(0)),
 
-  test.skip("4 skip", () => {
-    assert.ok(1);
-  })
+  test.skip("04 skip", () => assert.ok(1))
+);
+
+run(
+  (code) => console.log("Exit", code),
+  terminal,
+
+  test.skip("10 Sync skip", () => assert.ok(1)),
+
+  test("11 Sync pass", () => assert.ok(1)),
+
+  test.skip("12 Sync skip", () => assert.ok(1)),
+
+  test("13 Sync pass", () => assert.ok(1))
 );
