@@ -45,28 +45,27 @@ const post = (id, status, test) => ({ ...test, id, status, time: new Date() });
  */
 export function run(done, update, ...tests) {
   /** @type {Tester.Collection} */
-  const collection = {
+  const col = {
     pending: [],
     skip: [],
     run: [],
   };
-  const cn = collection;
-  const only = [];
-  const rest = [];
+  const only = [],
+    rest = [];
 
   for (const test of tests) {
     if (test.kind === "sync" || test.kind === "callback") {
-      if (test.flag === "skip") cn.skip.push(test);
+      if (test.flag === "skip") col.skip.push(test);
       else if (test.flag === "only") only.push(test);
       else rest.push(test);
-    } else cn.pending.push(test);
+    } else col.pending.push(test);
   }
 
-  cn.run = only.length ? only : rest;
-  let total = cn.run.length;
-  let count = 0;
-  let passed = 0;
-  let failed = 0;
+  col.run = only.length ? only : rest;
+  let total = col.run.length,
+    count = 0,
+    passed = 0,
+    failed = 0;
 
   /** @arg {Tester.PostTest} test */
   const send = (test) => {
@@ -75,11 +74,11 @@ export function run(done, update, ...tests) {
     if (isPass || isError) ++count;
     if (isError) ++failed;
     else if (isPass) ++passed;
-    update({ test, collection, count, total, passed, failed });
+    update({ test, collection: col, count, total, passed, failed });
     if ((isPass || isError) && count === total) done(0 < failed ? 1 : 0);
   };
 
-  for (const [id, test] of cn.run.entries()) {
+  for (const [id, test] of col.run.entries()) {
     if (test.kind === "sync") {
       send(post(id, "started", test));
       try {
@@ -106,11 +105,6 @@ export function run(done, update, ...tests) {
     }
   }
 }
-
-/**
- * @arg {Array<any>} _args
- */
-run.skip = (..._args) => {};
 
 /**
  * @arg {Tester.Msg} message
