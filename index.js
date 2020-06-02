@@ -67,23 +67,21 @@ suite.skip = (...kids) => createSuite("skip", kids);
 // Collector
 // /////////////////////////////////////////////////////////////////////////////
 
-/** @arg {Tester.Kid} item */
-function flat(item) {
-  if (item.kind === "suite") return filter(item.kids);
-  if (item.kind === "sync" || item.kind === "callback") return [item];
-  else return [];
-}
-
 /**
- * @arg {Tester.Kids} items
+ * @arg {Tester.Kids} kids
  * @return {Tester.Kids}
  */
-function filter(items) {
+function filter(kids) {
   const rest = [],
     only = [];
-  for (const item of items) {
-    if (item.flag === "only") only.push(...flat(item));
-    else if (item.flag === "rest") rest.push(...flat(item));
+  for (const kid of kids) {
+    if (kid.kind === "suite") {
+      if (kid.flag === "only") only.push(...filter(kid.kids));
+      else if (kid.flag === "rest") rest.push(...filter(kid.kids));
+    } else if (kid.kind === "sync" || kid.kind === "callback") {
+      if (kid.flag === "only") only.push(kid);
+      else if (kid.flag === "rest") rest.push(kid);
+    }
   }
   return only.length ? only : rest;
 }
