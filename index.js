@@ -86,18 +86,8 @@ function filter(items) {
  */
 export function collect(...items) {
   return {
-    // pending: [],
-    // skip: [],
     run: /** @type {Array.<Tester.RunnableTest>} */ (filter(items)),
   };
-
-  // for (const test of tests) {
-  //   if (test.kind === "sync" || test.kind === "callback") {
-  //     if (test.flag === "skip") col.skip.push(test);
-  //     else if (test.flag === "only") only.push(test);
-  //     else rest.push(test);
-  //   } else col.pending.push(test);
-  // }
 }
 
 /**
@@ -172,17 +162,6 @@ export function terminal({ test, count, total, passed, failed }) {
     console.error(status);
   }
   if (count === total && (status === "passed" || status instanceof Error)) {
-    console.log(
-      // "Run",
-      // total,
-      "Passed",
-      passed,
-      "Failed",
-      failed
-      // "Skipped",
-      // collection.skip.length,
-      // "Pending",
-      // collection.pending.length
-    );
+    console.log("Passed", passed, "Failed", failed);
   }
 }

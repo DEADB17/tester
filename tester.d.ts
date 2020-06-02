@@ -50,8 +50,6 @@ declare namespace Tester {
   };
 
   interface Collection {
-    // pending: Array<PreTest>;
-    // skip: Array<RunnableTest>;
     run: Array<RunnableTest>;
   }
 
