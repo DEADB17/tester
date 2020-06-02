@@ -48,8 +48,5 @@ run(
     suite.skip()
   ),
 
-  suite(test("10 Skipped because the suite doesn't run", () => assert.ok(1))),
-).then(exitCode => {
-  assert.equal(exitCode, 1);
-  process.exit(0);
-});
+  suite(test("10 Skipped because the suite doesn't run", () => assert.ok(1)))
+);
