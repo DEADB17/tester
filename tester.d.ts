@@ -5,6 +5,15 @@ declare namespace Tester {
 
   type Flags = "rest" | "only" | "skip";
 
+  type Kid = Suite | PreTest;
+  type Kids = Array<Kid>;
+
+  interface Suite {
+    kind: "suite";
+    flag: Flags;
+    kids: Kids;
+  }
+
   interface BaseTest {
     info: string;
     kind: string;
@@ -41,8 +50,8 @@ declare namespace Tester {
   };
 
   interface Collection {
-    pending: Array<PreTest>;
-    skip: Array<RunnableTest>;
+    // pending: Array<PreTest>;
+    // skip: Array<RunnableTest>;
     run: Array<RunnableTest>;
   }
 
