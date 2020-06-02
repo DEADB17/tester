@@ -31,7 +31,7 @@ declare namespace Tester {
     fn: FnVal;
   }
 
-  type CbVal = (done: (error: Error | void) => void) => void;
+  type CbVal = (done: (error?: any) => void) => void;
 
   interface CbTest extends BaseTest {
     kind: CbKind;

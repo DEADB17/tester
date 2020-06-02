@@ -139,7 +139,9 @@ export function run(done, update, tests) {
           test.kind = "promise";
           res
             .then(() => send(post(id, "passed", test)))
-            .catch((/** @type {Error} */ error) => send(post(id, error, test)));
+            .catch((e) =>
+              send(post(id, e instanceof Error ? e : Error(e), test))
+            );
         } else {
           send(post(id, "passed", test));
         }
@@ -148,12 +150,19 @@ export function run(done, update, tests) {
       }
     } else if (test.kind === "callback") {
       send(post(id, "started", test));
-      /** @arg {Error | void} error */
-      const done = (error) => {
-        if (error && !(error instanceof Error)) error = new Error(error);
-        send(post(id, error || "passed", test));
+      let pending = true;
+      /** @arg {any} e */
+      const done = (e) => {
+        if (e == null) pending && send(post(id, "passed", test));
+        else pending && send(post(id, e instanceof Error ? e : Error(e), test));
+        pending = false;
       };
-      test.fn(done);
+      try {
+        test.fn(done);
+      } catch (error) {
+        pending && send(post(id, error, test));
+        pending = false;
+      }
     }
   }
 }
