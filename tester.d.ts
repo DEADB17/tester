@@ -49,13 +49,11 @@ declare namespace Tester {
     time: Date;
   };
 
-  interface Collection {
-    run: Array<RunnableTest>;
-  }
+  type RunningTests = Array<RunnableTest>;
 
   type Msg = {
     test: PostTest;
-    collection: Collection;
+    tests: RunningTests;
     count: number;
     total: number;
     passed: number;

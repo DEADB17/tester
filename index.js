@@ -82,12 +82,10 @@ function filter(items) {
 
 /**
  * @arg {Tester.Kids} items
- * @return {Tester.Collection}
+ * @return {Tester.RunningTests}
  */
 export function collect(...items) {
-  return {
-    run: /** @type {Array.<Tester.RunnableTest>} */ (filter(items)),
-  };
+  return /** @type {Tester.RunningTests} */ (filter(items));
 }
 
 /**
@@ -101,11 +99,10 @@ const post = (id, status, test) => ({ ...test, id, status, time: new Date() });
 /**
  * @arg {Tester.Done} done
  * @arg {Tester.Update} update
- * @arg {Tester.Collection} col
+ * @arg {Tester.RunningTests} tests
  */
-export function run(done, update, col) {
-  console.log(col.run);
-  let total = col.run.length,
+export function run(done, update, tests) {
+  let total = tests.length,
     count = 0,
     passed = 0,
     failed = 0;
@@ -117,11 +114,11 @@ export function run(done, update, col) {
     if (isPass || isError) ++count;
     if (isError) ++failed;
     else if (isPass) ++passed;
-    update({ test, collection: col, count, total, passed, failed });
+    update({ test, tests, count, total, passed, failed });
     if ((isPass || isError) && count === total) done(0 < failed ? 1 : 0);
   };
 
-  for (const [id, test] of col.run.entries()) {
+  for (const [id, test] of tests.entries()) {
     if (test.kind === "sync") {
       send(post(id, "started", test));
       try {
@@ -148,6 +145,10 @@ export function run(done, update, col) {
     }
   }
 }
+
+// /////////////////////////////////////////////////////////////////////////////
+// Reporters
+// /////////////////////////////////////////////////////////////////////////////
 
 /**
  * @arg {Tester.Msg} message
