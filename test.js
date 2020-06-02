@@ -1,4 +1,4 @@
-import { test, suite, collect, run, terminal } from "./index.js";
+import { test, suite, collect, run, terminal } from "./tester.js";
 import { strict as assert } from "assert";
 
 run(
